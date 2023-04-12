@@ -1,0 +1,43 @@
+pipeline {
+  agent any 
+  environment {
+    DB_CREDS=credentials('micro-db-creds')
+  }
+  stages {
+    stage('Verify version') {
+      steps {
+        sh 'docker run --rm flyway/flyway:9.16.1 version'
+      }
+    }
+    stage('migrate products db') {
+      steps {
+        sh 'docker run --rm -v $WORKSPACE/products-sql:/flyway/sql -v $WORKSPACE/products-conf:/flyway/conf flyway/flyway:9.16.1 -user=$DB_CREDS_USR -password=$DB_CREDS_PSW migrate'
+      }
+    }
+    stage('validate products db') {
+      steps {
+        sh 'docker run --rm -v $WORKSPACE/products-sql:/flyway/sql -v $WORKSPACE/products-conf:/flyway/conf flyway/flyway:9.16.1 -user=$DB_CREDS_USR -password=$DB_CREDS_PSW validate'
+      }
+    }
+    stage('info products db') {
+      steps {
+        sh 'docker run --rm -v $WORKSPACE/products-sql:/flyway/sql -v $WORKSPACE/products-conf:/flyway/conf flyway/flyway:9.16.1 -user=$DB_CREDS_USR -password=$DB_CREDS_PSW info'
+      }
+    }
+    stage('migrate orders db') {
+      steps {
+        sh 'docker run --rm -v $WORKSPACE/orders-sql:/flyway/sql -v $WORKSPACE/orders-conf:/flyway/conf flyway/flyway:9.16.1 -user=$DB_CREDS_USR -password=$DB_CREDS_PSW migrate'
+      }
+    }
+    stage('validate orders db') {
+      steps {
+        sh 'docker run --rm -v $WORKSPACE/orders-sql:/flyway/sql -v $WORKSPACE/orders-conf:/flyway/conf flyway/flyway:9.16.1 -user=$DB_CREDS_USR -password=$DB_CREDS_PSW validate'
+      }
+    }
+    stage('info orders db') {
+      steps {
+        sh 'docker run --rm -v $WORKSPACE/orders-sql:/flyway/sql -v $WORKSPACE/orders-conf:/flyway/conf flyway/flyway:9.16.1 -user=$DB_CREDS_USR -password=$DB_CREDS_PSW info'
+      }
+    }
+  }
+}
